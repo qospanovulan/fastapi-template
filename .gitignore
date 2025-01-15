@@ -3,3 +3,4 @@
 __pycache__
 app.egg-info
 /src/app.egg-info/
+.env
