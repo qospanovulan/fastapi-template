@@ -93,26 +93,26 @@ class Step2(QWidget):
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        self.label = QLabel("Step 2: Load Template")
+        self.label = QLabel("Шаг 2: Загрузить Шаблон")
 
-        self.load_local_button = QPushButton("Load Template from Local")
+        self.load_local_button = QPushButton("Загрузить Шаблон с Компьютера")
         self.load_local_button.clicked.connect(self.load_local_file)
 
-        self.load_cloud_button = QPushButton("Load Template from Cloud")
+        self.load_cloud_button = QPushButton("Загрузить Шаблон с Сервера")
         self.load_cloud_button.clicked.connect(self.load_cloud_file)
 
-        self.raw_data_label = QLabel("Raw Data Columns:")
+        self.raw_data_label = QLabel("Столбцы из файла данных:")
         self.raw_data_list = QListWidget()
 
         self.template_table = TemplateTable()
         self.template_table.itemChanged.connect(self.on_template_changed)
 
         self.button_layout = QHBoxLayout()
-        self.save_button = QPushButton("Save Changes")
+        self.save_button = QPushButton("Сохранить изменения")
         self.save_button.clicked.connect(self.save_changes)
         self.save_button.setEnabled(False)
 
-        self.generate_button = QPushButton("Generate Files")
+        self.generate_button = QPushButton("Генерация файлов")
         self.generate_button.clicked.connect(self.generate_files)
         self.generate_button.setEnabled(False)
 
@@ -176,7 +176,7 @@ class Step2(QWidget):
                 }
 
     def load_local_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select Excel Template", "", "Excel Files (*.xlsx *.xls)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Выбрать Шаблон", "", "Excel Files (*.xlsx *.xls)")
         if file_path:
             self.template_path = file_path
             self.display_template()
@@ -189,7 +189,7 @@ class Step2(QWidget):
             templates = response.json()
 
             dialog = QDialog(self)
-            dialog.setWindowTitle("Select Template from Cloud")
+            dialog.setWindowTitle("Выбрать Шаблон с Сервера")
             layout = QVBoxLayout()
             list_widget = QListWidget()
             for template in templates:
@@ -198,14 +198,14 @@ class Step2(QWidget):
                 list_widget.addItem(item)
             layout.addWidget(list_widget)
 
-            load_button = QPushButton("Load")
+            load_button = QPushButton("Выбрать")
             load_button.clicked.connect(lambda: self.fetch_template_from_cloud(list_widget, dialog))
             layout.addWidget(load_button)
 
             dialog.setLayout(layout)
             dialog.exec()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to fetch templates: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", f"Ошибка при получнии Шаблона из сервера: {str(e)}")
 
     def fetch_template_from_cloud(self, list_widget, dialog):
         selected_item = list_widget.currentItem()
@@ -223,7 +223,7 @@ class Step2(QWidget):
                 self.display_template()
                 dialog.accept()
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to load template: {str(e)}")
+                QMessageBox.critical(self, "Ошибка", f"Ошибка при получнии Шаблона из сервера: {str(e)}")
 
     def display_template(self):
         if self.template_path:
@@ -295,8 +295,8 @@ class Step2(QWidget):
 
         reply = QMessageBox.question(
             self,
-            "Upload to Cloud",
-            "Do you want to replace this template on the server?",
+            "Обновление Шаблона",
+            "Обновить Шаблон на Сервере?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
@@ -306,13 +306,13 @@ class Step2(QWidget):
                     files = {"file": f}
                     response = requests.post(f"{self.backend_url}/templates/update/", files=files)
                     response.raise_for_status()
-                    QMessageBox.information(self, "Success", "Template uploaded to the server.")
+                    QMessageBox.information(self, "Отлично", "Новый шаблон загружен на сервер.")
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to upload template: {str(e)}")
+                QMessageBox.critical(self, "Ошибка", f"Ошибка при загрузке шаблона на сервер: {str(e)}")
 
     def save_changes_local(self):
         if not self.sheet:
-            QMessageBox.warning(self, "Warning", "Please load a template first.")
+            QMessageBox.warning(self, "Предупреждение", "Сначала нужно указать файл Шаблона.")
             return
 
         try:
@@ -351,18 +351,18 @@ class Step2(QWidget):
                 self.saved_template_path = self.template_path.replace('.xlsx', '_marked.xlsx')
             self.workbook.save(self.saved_template_path)
             self.changes = {}
-            QMessageBox.information(self, "Success", f"Template saved as: {self.saved_template_path}")
+            QMessageBox.information(self, "Отлично", f"Шаблон сохранен как: {self.saved_template_path}")
             self.generate_button.setEnabled(True)
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save template: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", f"Ошибка при сохранении шаблона: {str(e)}")
 
     def generate_files_old(self):
         if not self.saved_template_path or not self.main_window.step1.data is not None:
-            QMessageBox.warning(self, "Warning", "Please ensure template is saved and raw data is loaded.")
+            QMessageBox.warning(self, "Предупреждение", "Пожалуйста, убедитесь что Шаблон и данные указаны правильно.")
             return
 
-        chosen_dir = QFileDialog.getExistingDirectory(self, "Select Output Folder")
+        chosen_dir = QFileDialog.getExistingDirectory(self, "Выбрать куда сохранить")
         if not chosen_dir:
             return
         try:
@@ -373,7 +373,7 @@ class Step2(QWidget):
             os.makedirs(output_dir, exist_ok=True)
 
             total_files = len(raw_data)
-            progress = QProgressDialog("Generating files...", None, 0, total_files, self)
+            progress = QProgressDialog("Генерация данных...", None, 0, total_files, self)
             progress.setWindowModality(Qt.WindowModality.WindowModal)
 
             for idx, row in enumerate(raw_data.itertuples(), start=1):
@@ -396,89 +396,14 @@ class Step2(QWidget):
 
             QMessageBox.information(
                 self,
-                "Success",
-                f"Generated {total_files} files in folder: {output_dir}"
+                "Отлично",
+                f"Сгенерировано {total_files} файлов в папке: {output_dir}"
             )
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to generate files: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", f"Ошибка при генерации файлов: {str(e)}")
             raise e
 
-    def generate_files_old_2(self):
-        if not self.saved_template_path or self.main_window.step1.data is None:
-            QMessageBox.warning(self, "Warning", "Please ensure template is saved and raw data is loaded.")
-            return
-
-        chosen_dir = QFileDialog.getExistingDirectory(self, "Select Output Folder")
-        if not chosen_dir:
-            return
-
-        # Asking the user for file type and name pattern
-        file_type, ok = QInputDialog.getItem(self, "Select File Type", "Choose file format:", ["Excel", "PDF"], 0,
-                                             False)
-        if not ok:
-            return
-
-        name_pattern, ok = QInputDialog.getText(self, "File Naming Pattern",
-                                                "Enter file naming pattern (use {1}, {9} for column index pairs):",
-                                                text="{1}_{9}_gen")
-        if not ok:
-            return
-
-        try:
-            raw_data = self.main_window.step1.data
-
-            output_dir = os.path.join(chosen_dir, os.path.basename(self.template_path).replace('.xlsx', '_filled'))
-            os.makedirs(output_dir, exist_ok=True)
-
-            total_files = len(raw_data)
-            progress = QProgressDialog("Generating files...", None, 0, total_files, self)
-            progress.setWindowModality(Qt.WindowModality.WindowModal)
-
-            for idx, row in enumerate(raw_data.itertuples(), start=1):
-                # if file_type == "Excel":
-                    # Excel file generation
-                new_wb = load_workbook(self.saved_template_path)
-                new_sheet = new_wb.active
-
-                for (row_idx, col_idx), placeholder_info in self.placeholders.items():
-                    template_text = placeholder_info['template']
-
-                    for col_id in placeholder_info['column_ids']:
-                        if col_id < len(raw_data.columns):
-                            value = str(row[col_id + 1])
-                            template_text = template_text.replace(f"{{{col_id + 1}}}", value)
-
-                    new_sheet.cell(row=row_idx, column=col_idx).value = template_text
-
-                # Replace placeholders with actual column index values in filename
-                file_name = name_pattern
-                for col_idx, col_name in enumerate(raw_data.columns.to_list()):
-                    print(f"{col_idx=}")
-                    # Replace {col_idx} with actual data from the row
-                    value = str(row[col_idx])  # Adjust for 1-based index of `itertuples()`
-                    print(f"{value=}")
-                    file_name = file_name.replace(f"{{{col_idx}}}", value)
-                    print(f"{file_name=}")
-
-                if file_type == "Excel":
-                    output_path = os.path.join(output_dir, file_name.format(idx=idx)) + ".xlsx"
-                    new_wb.save(output_path)
-
-                if file_type == "PDF":
-                    pdf = FPDF()
-                    pdf.set_auto_page_break(auto=True, margin=15)
-                    pdf.add_page()
-
-                    ...
-
-                progress.setValue(idx)
-
-            QMessageBox.information(self, "Success", f"Generated {total_files} files in folder: {output_dir}")
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to generate files: {str(e)}")
-            raise e
 
     def generate_files(self):
         if not self.saved_template_path or self.main_window.step1.data is None:
@@ -540,14 +465,16 @@ class Step2(QWidget):
 
                     new_sheet.cell(row=row_idx, column=col_idx).value = template_text
 
-                if file_type == "Excel":
+                # if file_type == "Excel":
                     # Generate Excel file
-                    output_path = os.path.join(output_dir, file_name) + ".xlsx"
-                    new_wb.save(output_path)
+                output_path = os.path.join(output_dir, file_name) + ".xlsx"
+                new_wb.save(output_path)
+                new_wb.close()
 
-                elif file_type == "PDF":
+                if file_type == "PDF":
                     pdf_path = os.path.join(output_dir, file_name) + ".pdf"
-                    self.convert_excel_to_pdf(new_sheet, pdf_path)
+                    # self.convert_excel_to_pdf(new_sheet, pdf_path)
+                    self.convert_excel_to_pdf_windows(output_path, pdf_path)
                     # self.convert_excel_to_pdf_with_borders(new_sheet, pdf_path)
 
                 progress.setValue(idx)
@@ -719,3 +646,42 @@ class Step2(QWidget):
 
         except Exception as e:
             print(f"Error converting Excel to PDF: {e}")
+
+    @staticmethod
+    def convert_excel_to_pdf_windows(input_excel_path, output_pdf_path):
+        import os
+
+        from win32com.client import Dispatch, constants
+        """
+            Converts an Excel file to a PDF file on Windows using win32com.client.
+            Args:        input_excel_path (str): Path to the input Excel file.
+                output_pdf_path (str): Path to the output PDF file.
+            Raises:        Exception: If there is an error during the conversion.
+            """
+        excel = None
+        try:  # Create a COM object for Excel
+            print("check1")
+            excel = Dispatch("Excel.Application")
+            excel.Visible = False
+            excel.DisplayAlerts = False
+            # Open the Excel file
+            workbook = excel.Workbooks.Open(input_excel_path)
+            print("check2")
+            print(input_excel_path)
+            # Export as PDF
+            workbook.ExportAsFixedFormat(0, output_pdf_path)
+
+
+            print("check 3")
+        except Exception as e:
+            raise Exception(f"Error converting Excel to PDF: {str(e)}")
+        finally:  # Clean up resources
+            if workbook:
+                workbook.Close(SaveChanges=False)
+            if excel:
+                excel.Quit()
+# Verify the file was created
+        if not os.path.exists(output_pdf_path):
+            raise Exception("PDF conversion failed: Output file not created.")
+
+
