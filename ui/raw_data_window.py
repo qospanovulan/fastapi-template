@@ -36,7 +36,8 @@ class Step1(QWidget):
                         if (self.data[column].dt.time != pd.Timestamp(0).time()).any():
                             continue
                         else:
-                            self.data[column] = self.data[column].dt.date
+                            self.data[column] = self.data[column].dt.strftime('%d.%m.%Y')
+                            # self.data[column] = self.data[column].dt.date
 
                 self.raw_data_columns = self.data.columns.tolist()
                 self.populate_table(self.data)

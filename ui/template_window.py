@@ -326,17 +326,17 @@ class Step2(QWidget):
 
     def generate_files(self):
         if not self.saved_template_path or self.main_window.step1.data is None:
-            QMessageBox.warning(self, "Предупреждение", "Please ensure template is saved and raw data is loaded.")
+            QMessageBox.warning(self, "Предупреждение", "Удостовертесь что шаблон и файл с данными загружен.")
             return
 
-        chosen_dir = QFileDialog.getExistingDirectory(self, "Select Output Folder")
+        chosen_dir = QFileDialog.getExistingDirectory(self, "Выбрать файл сохранения")
         if not chosen_dir:
             return
 
         file_type, ok = QInputDialog.getItem(
             self,
-            "Select File Type",
-            "Choose file format:",
+            "Выбрать тип файла",
+            "Выберите формат:",
             ["Excel", "PDF"],
             0,
             False
@@ -407,6 +407,7 @@ class Step2(QWidget):
 
     @staticmethod
     def convert_excel_to_pdf_windows(input_excel_path, output_pdf_path):
+
         import os
 
         from win32com.client import Dispatch, constants
