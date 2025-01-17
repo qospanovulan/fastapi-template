@@ -7,38 +7,32 @@ from ui.template_window import Step2
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Excel Processing Tool")
+        self.setWindowTitle("TemplateFiller")
         self.setGeometry(100, 100, 800, 600)
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        # Stacked widget to hold different steps
         self.stacked_widget = QStackedWidget()
 
-        # Create steps in correct order
-        self.step1 = Step1(self)  # Pass main window reference
-        self.step2 = Step2(self)  # Pass main window reference
+        self.step1 = Step1(self)
+        self.step2 = Step2(self)
 
-        # Add widgets in the desired order
         self.stacked_widget.addWidget(self.step1)
         self.stacked_widget.addWidget(self.step2)
 
-        # Navigation buttons
         self.nav_layout = QHBoxLayout()
-        self.btn_prev = QPushButton("Prev")
-        # self.btn_prev.setIcon(QIcon('icons/prev.png'))  # Add icon
+        self.btn_prev = QPushButton("Пред.")
         self.btn_prev.setEnabled(True)
         self.btn_prev.clicked.connect(self.go_to_previous_step)
 
-        self.btn_next = QPushButton("Next")
+        self.btn_next = QPushButton("След.")
         self.btn_next.setEnabled(True)
         self.btn_next.clicked.connect(self.go_to_next_step)
 
         self.nav_layout.addWidget(self.btn_prev)
         self.nav_layout.addWidget(self.btn_next)
 
-        # Main layout
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.stacked_widget)
         main_layout.addLayout(self.nav_layout)

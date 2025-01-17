@@ -1,36 +1,12 @@
 import os
-import sys
 
 import requests
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QSplitter, QLabel, QPushButton, QListWidget, QTableWidget, \
     QHBoxLayout, QListWidgetItem, QFileDialog, QDialog, QMessageBox, QTableWidgetItem, QProgressDialog, QInputDialog
-from openpyxl.reader.excel import load_workbook
 
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 from openpyxl import load_workbook
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib import fonts
-from fpdf import FPDF
-
-if getattr(sys, 'frozen', False):
-    bundle_dir = sys._MEIPASS
-else:
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    bundle_dir = os.path.join(base_dir, "fonts")
-    print(bundle_dir)
-
-pdfmetrics.registerFont(TTFont('Arial', os.path.join(bundle_dir, 'ARIAL.TTF')))
-pdfmetrics.registerFont(TTFont('Arial-Bold', os.path.join(bundle_dir, 'ARIALBD.TTF')))
-pdfmetrics.registerFont(TTFont('Arial-Italic', os.path.join(bundle_dir, 'ARIALI.TTF')))
-pdfmetrics.registerFont(TTFont('Calibri', os.path.join(bundle_dir, 'calibri.ttf')))
 
 
 class TemplateTable(QTableWidget):
@@ -60,16 +36,6 @@ class TemplateTable(QTableWidget):
         else:
             super().wheelEvent(event)
 
-    def update_table_font_old(self, font_size):
-        """Update the font size of all cells in the table."""
-        font = QFont()
-        font.setPointSize(font_size)
-
-        for row in range(self.rowCount()):
-            for col in range(self.columnCount()):
-                item = self.item(row, col)
-                if item:
-                    item.setFont(font)
 
     def update_table_font(self, font_size):
         """Update the font size of all cells in the table while preserving existing font styles."""
@@ -288,7 +254,7 @@ class Step2(QWidget):
                     )
 
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to load template: {str(e)}")
+                QMessageBox.critical(self, "Ошибка", f"Ошибка при получении шаблона: {str(e)}")
 
     def save_changes(self):
         self.save_changes_local()
@@ -357,64 +323,16 @@ class Step2(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Ошибка при сохранении шаблона: {str(e)}")
 
-    def generate_files_old(self):
-        if not self.saved_template_path or not self.main_window.step1.data is not None:
-            QMessageBox.warning(self, "Предупреждение", "Пожалуйста, убедитесь что Шаблон и данные указаны правильно.")
-            return
-
-        chosen_dir = QFileDialog.getExistingDirectory(self, "Выбрать куда сохранить")
-        if not chosen_dir:
-            return
-        try:
-            raw_data = self.main_window.step1.data
-
-            import os
-            output_dir = os.path.join(chosen_dir, os.path.basename(self.template_path).replace('.xlsx', '_filled'))
-            os.makedirs(output_dir, exist_ok=True)
-
-            total_files = len(raw_data)
-            progress = QProgressDialog("Генерация данных...", None, 0, total_files, self)
-            progress.setWindowModality(Qt.WindowModality.WindowModal)
-
-            for idx, row in enumerate(raw_data.itertuples(), start=1):
-                new_wb = load_workbook(self.saved_template_path)
-                new_sheet = new_wb.active
-
-                for (row_idx, col_idx), placeholder_info in self.placeholders.items():
-                    template_text = placeholder_info['template']
-
-                    for col_id in placeholder_info['column_ids']:
-                        if col_id < len(raw_data.columns):
-                            value = str(row[col_id + 1])
-                            template_text = template_text.replace(f"{{{col_id + 1}}}", value)
-
-                    new_sheet.cell(row=row_idx, column=col_idx).value = template_text
-
-                output_path = os.path.join(output_dir, f'generated_{idx}.xlsx')
-                new_wb.save(output_path)
-                progress.setValue(idx)
-
-            QMessageBox.information(
-                self,
-                "Отлично",
-                f"Сгенерировано {total_files} файлов в папке: {output_dir}"
-            )
-
-        except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Ошибка при генерации файлов: {str(e)}")
-            raise e
-
 
     def generate_files(self):
         if not self.saved_template_path or self.main_window.step1.data is None:
-            QMessageBox.warning(self, "Warning", "Please ensure template is saved and raw data is loaded.")
+            QMessageBox.warning(self, "Предупреждение", "Please ensure template is saved and raw data is loaded.")
             return
 
         chosen_dir = QFileDialog.getExistingDirectory(self, "Select Output Folder")
         if not chosen_dir:
             return
 
-        # Asking the user for file type and name pattern
         file_type, ok = QInputDialog.getItem(
             self,
             "Select File Type",
@@ -428,9 +346,9 @@ class Step2(QWidget):
 
         name_pattern, ok = QInputDialog.getText(
             self,
-            "File Naming Pattern",
-            "Enter file naming pattern (use {1}, {9} for column index pairs):",
-            text="{1}_{9}_gen"
+            "Паттерн Названия Файла",
+            "Укажите паттерн для названия файла (используйте {1}, {9}):",
+            text="{2}_{1}_gen"
         )
         if not ok:
             return
@@ -438,21 +356,20 @@ class Step2(QWidget):
         try:
             raw_data = self.main_window.step1.data
 
-            output_dir = os.path.join(chosen_dir, os.path.basename(self.template_path).replace('.xlsx', '_filled'))
-            os.makedirs(output_dir, exist_ok=True)
+            output_dir_xlsx = os.path.join(chosen_dir, os.path.basename(self.template_path).replace('.xlsx', '_filled_excel'))
+            output_dir_pdf = os.path.join(chosen_dir, os.path.basename(self.template_path).replace('.xlsx', '_filled_pdf'))
+            os.makedirs(output_dir_xlsx, exist_ok=True)
+            os.makedirs(output_dir_pdf, exist_ok=True)
 
             total_files = len(raw_data)
-            progress = QProgressDialog("Generating files...", None, 0, total_files, self)
+            progress = QProgressDialog("Генерация файлов...", None, 0, total_files, self)
             progress.setWindowModality(Qt.WindowModality.WindowModal)
 
             for idx, row in enumerate(raw_data.itertuples(index=False), start=1):
-                # Generate filename from the name pattern
                 file_name = name_pattern
                 for col_idx, col_value in enumerate(row, start=1):  # Adjusting for 1-based index
                     file_name = file_name.replace(f"{{{col_idx}}}", str(col_value))
 
-                # if file_type == "Excel":
-                    # Generate Excel file
                 new_wb = load_workbook(self.saved_template_path)
                 new_sheet = new_wb.active
 
@@ -465,187 +382,28 @@ class Step2(QWidget):
 
                     new_sheet.cell(row=row_idx, column=col_idx).value = template_text
 
-                # if file_type == "Excel":
-                    # Generate Excel file
-                output_path = os.path.join(output_dir, file_name) + ".xlsx"
+                output_path = os.path.join(output_dir_xlsx, file_name) + ".xlsx"
+                output_dir = output_dir_xlsx
                 new_wb.save(output_path)
                 new_wb.close()
 
                 if file_type == "PDF":
-                    pdf_path = os.path.join(output_dir, file_name) + ".pdf"
-                    # self.convert_excel_to_pdf(new_sheet, pdf_path)
+                    pdf_path = os.path.join(output_dir_pdf, file_name) + ".pdf"
                     self.convert_excel_to_pdf_windows(output_path, pdf_path)
-                    # self.convert_excel_to_pdf_with_borders(new_sheet, pdf_path)
+                    output_dir = output_dir_pdf
 
                 progress.setValue(idx)
 
             QMessageBox.information(
                 self,
-                "Success",
-                f"Generated {total_files} files in folder: {output_dir}"
+                "Отлично",
+                f"Сгенерировано {total_files} файлов в папке: {output_dir}"
             )
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to generate files: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", f"Ошибка при генерации файлов: {str(e)}")
             raise e
 
-    @staticmethod
-    def convert_excel_to_pdf(sheet, pdf_path):
-        """
-        Converts a structured Excel file with complex formatting to a PDF.
-        """
-        try:
-            fontsss = set()
-
-            # Extract data and formatting from the Excel sheet
-            data = []
-            styles = []  # Store per-cell styles
-            for row_idx, row in enumerate(sheet.iter_rows()):
-                row_data = []
-                row_styles = []
-                for col_idx, cell in enumerate(row):
-                    # Extract cell value
-                    value = cell.value if cell.value is not None else ""
-                    row_data.append(str(value))
-                    fontsss.add(cell.font.name)
-                    # Extract cell styles (alignment, font, etc.)
-                    cell_style = {
-                        "font_name": cell.font.name if cell.font else "Arial",
-                        # "font_name": "Arial",
-                        "font_size": cell.font.size if cell.font and cell.font.size else 10,
-                        "bold": cell.font.bold if cell.font else False,
-                        "italic": cell.font.italic if cell.font else False,
-                        "alignment": cell.alignment.horizontal if cell.alignment else "left",
-                        # "bg_color": f"#f0f0f0" if cell.fill and cell.fill.start_color.rgb else None,
-                        "bg_color": f"#f0f0f0",
-                    }
-                    row_styles.append(cell_style)
-                data.append(row_data)
-                styles.append(row_styles)
-
-            # Handle merged cells
-            merged_ranges = []
-            for merged_range in sheet.merged_cells.ranges:
-                min_row = merged_range.min_row - 1
-                min_col = merged_range.min_col - 1
-                max_row = merged_range.max_row - 1
-                max_col = merged_range.max_col - 1
-                merged_ranges.append((min_row, min_col, max_row, max_col))
-
-            # Create a PDF document
-            pdf = SimpleDocTemplate(pdf_path, pagesize=letter)
-            elements = []
-
-            # Generate a Table with styles
-            table = Table(data)
-            table_style = []
-
-            # Apply styles and handle merged cells
-            for row_idx, row in enumerate(styles):
-                for col_idx, cell_style in enumerate(row):
-                    start_color = cell_style["bg_color"]
-                    alignment = cell_style["alignment"]
-                    font_name = cell_style["font_name"]
-                    font_size = cell_style["font_size"]
-
-                    # Apply background color
-                    if start_color:
-                        if start_color != "#f0f0f0":
-                            print(start_color)
-                        table_style.append(
-                            ("BACKGROUND", (col_idx, row_idx), (col_idx, row_idx), colors.HexColor(start_color)))
-
-                    # Apply alignment
-                    if alignment == "center":
-                        table_style.append(("ALIGN", (col_idx, row_idx), (col_idx, row_idx), "CENTER"))
-                    elif alignment == "right":
-                        table_style.append(("ALIGN", (col_idx, row_idx), (col_idx, row_idx), "RIGHT"))
-                    else:
-                        table_style.append(("ALIGN", (col_idx, row_idx), (col_idx, row_idx), "LEFT"))
-
-                    # Apply font styles
-                    if cell_style["bold"]:
-                        font_name = "Arial-Bold"
-                    if cell_style["italic"]:
-                        font_name += "Arial-Italic"
-
-                    table_style.append(("FONTNAME", (col_idx, row_idx), (col_idx, row_idx), font_name))
-                    table_style.append(("FONTSIZE", (col_idx, row_idx), (col_idx, row_idx), font_size))
-
-            # Add merged cell spans
-            for min_row, min_col, max_row, max_col in merged_ranges:
-                table_style.append(("SPAN", (min_col, min_row), (max_col, max_row)))
-
-            # Apply styles to the table
-            table.setStyle(TableStyle(table_style))
-            elements.append(table)
-            print(fontsss)
-
-            # Build the PDF
-            pdf.build(elements)
-            print(f"PDF successfully generated at: {pdf_path}")
-
-        except Exception as e:
-            print(f"Error converting Excel to PDF: {e}")
-            raise
-
-    @staticmethod
-    def convert_excel_to_pdf_with_borders(sheet, pdf_path):
-        try:
-            from openpyxl import load_workbook
-
-            # Load the workbook and active sheet
-            # workbook = load_workbook(excel_path)
-            # sheet = workbook.active
-
-            data = []
-            table_styles = []
-
-            # Read the Excel data and extract styles
-            for row_idx, row in enumerate(sheet.iter_rows()):
-                row_data = []
-                for col_idx, cell in enumerate(row):
-                    value = cell.value
-                    row_data.append(str(value) if value is not None else "")
-
-                    # Extract border styles
-                    if cell.border:
-                        border_weight = 1  # Default border thickness
-                        color = colors.black  # Default border color
-
-                        if cell.border.top.style:
-                            table_styles.append(
-                                ("LINEABOVE", (col_idx, row_idx), (col_idx, row_idx), border_weight, color))
-                        if cell.border.bottom.style:
-                            table_styles.append(
-                                ("LINEBELOW", (col_idx, row_idx), (col_idx, row_idx), border_weight, color))
-                        if cell.border.left.style:
-                            table_styles.append(
-                                ("LINEBEFORE", (col_idx, row_idx), (col_idx, row_idx), border_weight, color))
-                        if cell.border.right.style:
-                            table_styles.append(
-                                ("LINEAFTER", (col_idx, row_idx), (col_idx, row_idx), border_weight, color))
-
-                data.append(row_data)
-
-            # Create the PDF document
-            pdf = SimpleDocTemplate(pdf_path, pagesize=A4)
-            table = Table(data)
-
-            # Add table styles
-            table.setStyle(TableStyle([
-                ("FONT", (0, 0), (-1, -1), "Helvetica", 10),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # Default grid for cells
-                *table_styles  # Custom styles for borders
-            ]))
-
-            # Build PDF
-            pdf.build([table])
-
-            print(f"PDF saved at {pdf_path}")
-
-        except Exception as e:
-            print(f"Error converting Excel to PDF: {e}")
 
     @staticmethod
     def convert_excel_to_pdf_windows(input_excel_path, output_pdf_path):
@@ -659,29 +417,22 @@ class Step2(QWidget):
             Raises:        Exception: If there is an error during the conversion.
             """
         excel = None
-        try:  # Create a COM object for Excel
-            print("check1")
+        try:
             excel = Dispatch("Excel.Application")
             excel.Visible = False
             excel.DisplayAlerts = False
-            # Open the Excel file
             workbook = excel.Workbooks.Open(input_excel_path)
-            print("check2")
-            print(input_excel_path)
-            # Export as PDF
             workbook.ExportAsFixedFormat(0, output_pdf_path)
 
-
-            print("check 3")
         except Exception as e:
-            raise Exception(f"Error converting Excel to PDF: {str(e)}")
-        finally:  # Clean up resources
+            raise Exception(f"Ошибка при конвертации excel на pdf: {str(e)}")
+        finally:
             if workbook:
                 workbook.Close(SaveChanges=False)
             if excel:
                 excel.Quit()
-# Verify the file was created
+
         if not os.path.exists(output_pdf_path):
-            raise Exception("PDF conversion failed: Output file not created.")
+            raise Exception("Ошибка. PDF файл не создан")
 
 

@@ -9,8 +9,8 @@ class Step1(QWidget):
         super().__init__()
         self.main_window = main_window
         layout = QVBoxLayout()
-        self.label = QLabel("Step 1: Load Data")
-        self.load_data_button = QPushButton("Load Raw Data from Local")
+        self.label = QLabel("Шаг 1: Загрузка Данных")
+        self.load_data_button = QPushButton("Выбрать Файл с Данными")
         self.load_data_button.clicked.connect(self.load_data_file)
 
         self.table = QTableWidget()
@@ -22,22 +22,11 @@ class Step1(QWidget):
         self.setLayout(layout)
 
         self.raw_data_columns = []
-        self.data = None  # Store the pandas DataFrame
+        self.data = None
 
-    def load_data_file_old(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select Raw Data File", "", "Excel Files (*.xlsx *.xls)")
-        if file_path:
-            try:
-                self.data = pd.read_excel(file_path)
-                self.raw_data_columns = self.data.columns.tolist()
-                self.populate_table(self.data)
-                QMessageBox.information(self, "File Loaded", f"Raw data loaded: {file_path}")
-                self.main_window.step2.update_raw_data_columns(self.raw_data_columns)
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to load file: {str(e)}")
 
     def load_data_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select Raw Data File", "", "Excel Files (*.xlsx *.xls)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Выбрать Файл", "", "Excel Files (*.xlsx *.xls)")
         if file_path:
             try:
                 self.data = pd.read_excel(file_path)
@@ -51,10 +40,10 @@ class Step1(QWidget):
 
                 self.raw_data_columns = self.data.columns.tolist()
                 self.populate_table(self.data)
-                QMessageBox.information(self, "File Loaded", f"Raw data loaded: {file_path}")
+                QMessageBox.information(self, "Файл загружен", f"Файл с Данными Загружен: {file_path}")
                 self.main_window.step2.update_raw_data_columns(self.raw_data_columns)
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to load file: {str(e)}")
+                QMessageBox.critical(self, "Ошибка", f"Ошибка при чтении данных: {str(e)}")
 
     def populate_table(self, data):
         self.table.setRowCount(data.shape[0])
@@ -65,7 +54,7 @@ class Step1(QWidget):
             for col in range(data.shape[1]):
                 value = data.iloc[row, col]
                 item = QTableWidgetItem(str(value) if pd.notna(value) else "")
-                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Make cells read-only
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.table.setItem(row, col, item)
 
         self.table.resizeColumnsToContents()
