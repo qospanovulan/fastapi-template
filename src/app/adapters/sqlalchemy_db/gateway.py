@@ -24,4 +24,5 @@ class SqlaGateway(DatabaseGateway):
     def delete_template_by_id(self, template_id: int):
         template = self.session.query(Template).filter_by(id=template_id).first()
         self.session.delete(template)
+        self.session.commit()
         return
