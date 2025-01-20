@@ -182,7 +182,7 @@ class Step2(QWidget):
                 response = requests.get(f"{self.backend_url}/templates/{template_id}/")
                 response.raise_for_status()
 
-                with open(template_name, "wb") as f:
+                with open(template_name, "wb", encoding="utf-8") as f:
                     f.write(response.content)
 
                 self.template_path = template_name
@@ -268,7 +268,7 @@ class Step2(QWidget):
 
         if reply == QMessageBox.StandardButton.Yes:
             try:
-                with open(self.saved_template_path, "rb") as f:
+                with open(self.saved_template_path, "rb", encoding="utf-8") as f:
                     files = {"file": f}
                     response = requests.post(f"{self.backend_url}/templates/update/", files=files)
                     response.raise_for_status()
