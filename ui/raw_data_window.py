@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QFileDialog, QMessageBox, \
@@ -24,7 +26,6 @@ class Step1(QWidget):
         self.raw_data_columns = []
         self.data = None
 
-
     def load_data_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Выбрать Файл", "", "Excel Files (*.xlsx *.xls)")
         if file_path:
@@ -37,8 +38,13 @@ class Step1(QWidget):
                             continue
                         else:
                             self.data[column] = self.data[column].dt.strftime('%d.%m.%Y')
-                            # self.data[column] = self.data[column].dt.date
-
+                    elif self.data[column].apply(lambda x: isinstance(x, datetime.time)).any():
+                        try:
+                            self.data[column] = pd.to_datetime(self.data[column], format='%H:%M:%S').dt.strftime(
+                                '%H:%M')
+                        except Exception as e:
+                            print(f"Error in processing time column {column}: {str(e)}")
+                            continue
                 self.raw_data_columns = self.data.columns.tolist()
                 self.populate_table(self.data)
                 QMessageBox.information(self, "Файл загружен", f"Файл с Данными Загружен: {file_path}")
