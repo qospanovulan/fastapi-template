@@ -105,7 +105,7 @@ def add_template(
     template_id, created = create_or_get_template(database, uow, name, file_path)
 
     if created:
-        with Path(file_path).open("wb", encoding="utf-8") as f:
+        with Path(file_path).open("wb") as f:
             f.write(file.file.read())
     else:
         raise HTTPException(
@@ -138,7 +138,7 @@ def update_template(
 
     template_id, created = create_or_get_template(database, uow, name, file_path)
 
-    with Path(file_path).open("wb", encoding="utf-8") as f:
+    with Path(file_path).open("wb") as f:
         f.write(file.file.read())
 
     return SomeResult(
