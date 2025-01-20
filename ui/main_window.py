@@ -1,4 +1,6 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QStackedWidget, QHBoxLayout, QPushButton, QVBoxLayout
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtWidgets import QMainWindow, QWidget, QStackedWidget, QHBoxLayout, QPushButton, QVBoxLayout, QLabel
 
 from ui.raw_data_window import Step1
 from ui.template_window import Step2
@@ -9,6 +11,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("TemplateFiller")
         self.setGeometry(100, 100, 800, 600)
+
+        self.setWindowIcon(QIcon("ui/logo.png"))
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
