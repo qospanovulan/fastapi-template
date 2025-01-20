@@ -8,7 +8,7 @@ from fastapi import HTTPException, status, APIRouter, Depends, UploadFile, File
 from fastapi.responses import FileResponse
 
 from app.application.protocols.database import DatabaseGateway, UoW
-from app.application.templates import create_or_get_template, get_all_templates, get_template
+from app.application.templates import create_or_get_template, get_all_templates, get_template, delete_template
 from app.config.base import Settings
 
 templates_router = APIRouter()
@@ -148,7 +148,7 @@ def update_template(
 @templates_router.post("/delete/", responses={
     404: {"model": ErrorResponse, "description": "Template not found."}
 })
-def delete_template(
+def delete_template_api(
         database: Annotated[DatabaseGateway, Depends()],
         uow: Annotated[UoW, Depends()],
         settings: Annotated[Settings, Depends()],
