@@ -1,3 +1,4 @@
+import logging
 import os.path
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,7 +28,13 @@ class SomeResult:
 @dataclass
 class ErrorResponse:
     detail: str
-    status_code: str
+    status_code: int
+
+
+@dataclass
+class OkResponse:
+    detail: str
+    status_code: int
 
 
 @templates_router.get('/', responses={
@@ -137,4 +144,36 @@ def update_template(
     return SomeResult(
         template_id=template_id,
     )
+
+@templates_router.post("/delete/", responses={
+    404: {"model": ErrorResponse, "description": "Template not found."}
+})
+def delete_template(
+        database: Annotated[DatabaseGateway, Depends()],
+        uow: Annotated[UoW, Depends()],
+        settings: Annotated[Settings, Depends()],
+        name: str
+) -> OkResponse:
+
+
+    file_path = os.path.join(settings.template_path, name)
+
+    deleted = delete_template(database, uow, name)
+
+    if not deleted:
+        raise HTTPException(
+            detail="Template not found",
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    try:
+        os.remove(file_path)
+    except Exception as e:
+        logging.error(f"Error while deleting file {file_path}: {e}")
+
+    return OkResponse(
+        detail="Template deleted!",
+        status_code=status.HTTP_200_OK
+    )
+
+
 

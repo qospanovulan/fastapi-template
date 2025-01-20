@@ -30,3 +30,12 @@ def get_template(database: DatabaseGateway, uow: UoW, template_id: int):
     template = database.get_template_by_id(template_id=template_id)
 
     return template
+
+def delete_template(database: DatabaseGateway, uow: UoW, name: str):
+    template = database.get_template_by_name(name)
+
+    if template:
+        database.delete_template_by_id(template_id=template.id)
+        return True
+
+    return False

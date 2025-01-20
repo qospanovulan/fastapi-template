@@ -20,3 +20,8 @@ class SqlaGateway(DatabaseGateway):
     def add_template(self, template: Template) -> None:
         self.session.add(template)
         return
+
+    def delete_template_by_id(self, template_id: int):
+        template = self.session.query(Template).filter_by(id=template_id).first()
+        self.session.delete(template)
+        return

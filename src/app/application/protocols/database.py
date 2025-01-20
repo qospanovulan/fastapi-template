@@ -26,8 +26,13 @@ class DatabaseGateway(ABC):
     @abstractmethod
     def get_templates(self):
         raise NotImplementedError
+
     @abstractmethod
     def add_template(self, template: Template) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_template_by_id(self, template_id: int):
         raise NotImplementedError
 
 
